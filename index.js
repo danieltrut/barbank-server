@@ -19,7 +19,7 @@ app.use(express.json())
 app.use('/users', require('./routes/users'))
 
 mongoose.connect(process.env.MONGODB_URI, {}, function () {
-    console.log('Connected to mongoDB')
+    console.log('Connected tso mongoDB')
 })
 
 app.listen(process.env.PORT, function () {
