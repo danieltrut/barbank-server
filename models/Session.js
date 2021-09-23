@@ -6,6 +6,7 @@ module.exports = mongoose.model('Session', mongoose.Schema({
     toJSON: {
         transform: (docIn, docOut) => {
             docOut.id = docOut._id
+            delete docOut.userId
             delete docOut._id
             delete docOut.__v
         }

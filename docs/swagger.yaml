@@ -87,8 +87,6 @@ paths:
       summary: Create a session
       description: Creates a new instance of a `session`.
     delete:
-      security:
-        - bearerAuth: [ ]
       tags:
         - sessions
       responses:
@@ -113,12 +111,54 @@ paths:
                   value:
                     error: Invalid token
           description: Invalid Authorization header
+      security:
+        -
+          Bearer: []
+  /users/current:
+    get:
+      tags:
+        - users
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+              examples:
+                User details:
+                  value:
+                    accounts:
+                      -
+                        balance: 10000
+                        createdAt: '2021-09-21T13:54:50.018Z'
+                        currency: USD
+                        id: 6149e478a9e4f02ee84c2aff
+                        name: Main
+                        number: abc71251b13eaa35fec4158f38d3801f372
+                        userId: 6149e478a9e4f02ee84c2afd
+                    id: 6149e478a9e4f02ee84c2afd
+                    name: tester
+                    username: test123
+          description: Returns user's details
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Missing authorization header:
+                  value:
+                    error: Missing authorization header
+                Invalid authorization header:
+                  value:
+                    error: Invalid authorization header
+          description: Unauthorized
+      security:
+        -
+          Bearer: []
+      summary: Get user's details
+      description: Returns instance of `user`
 components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
   schemas:
     user:
       title: Root Type for user
@@ -147,6 +187,10 @@ components:
     session:
       description: ''
       type: object
+  securitySchemes:
+    Bearer:
+      scheme: bearer
+      type: http
 tags:
   -
     name: sessions

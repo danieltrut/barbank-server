@@ -18,7 +18,7 @@ exports.verifyToken = async (req, res, next) => {
 
     // Validate that the provided toke confors to Mongodb id format
     if (!mongoose.Types.ObjectId.isValid(authorizationHeader[1])){
-        return rest.status(401).send({error: 'Invalid token'})
+        return res.status(401).send({error: 'Invalid token'})
     }
 
 

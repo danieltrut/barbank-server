@@ -2,6 +2,7 @@ const bcrypt = require("bcrypt");
 const router = require("express").Router()
 const User = require("../models/User")
 const Account = require("../models/Account")
+const {verifyToken} = require("../middlewares")
 
 router.post('/', async function (req, res) {
 
@@ -29,14 +30,35 @@ router.post('/', async function (req, res) {
         }
 
         // 400 Required parameter missing
-        if (/User validation failed: .*: Path `.*` is required/.test(e.message)) {
+        if (/User validation failed: .*: Path `.*` is required.*/.test(e.message)) {
             return res.status(400).send({error: e.message})
         }
-
+        return res.status(500).send({error: e.message})
     }
 
     return res.status(201).send('');
 
 })
+
+router.get('/current', verifyToken, async function (req, res) {
+
+
+    // Retrieve user data from database
+    const user = await User.findOne({_id: req.userId})
+    console.log(user)
+
+    // Get user a account data
+    await Account.find({userId: req.userId})
+
+    res.status(200).send({
+        id: user.id,
+        name: user.name,
+        username: user.username,
+        accounts: accounts
+    })
+
+})
+
+
 
 module.exports = router
