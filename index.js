@@ -3,6 +3,7 @@ const app = express()
 const mongoose = require('mongoose');
 const swaggerUi = require('swagger-ui-express')
 const yamljs = require('yamljs')
+const {processTransactions} = require("./middlewares");
 const swaggerDocument = yamljs.load('docs/swagger.yaml')
 //tret
 require('dotenv').config()
@@ -23,6 +24,8 @@ mongoose.connect(process.env.MONGODB_URI, {}, function (err) {
     if(err)throw err
     console.log('Connected to mongoDB')
 })
+
+processTransactions()
 
 app.listen(process.env.PORT, function () {
     console.log(`Listening on port ${process.env.PORT}`)

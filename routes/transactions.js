@@ -63,7 +63,7 @@ router.post('/', verifyToken, async function (req, res) {
             accountTo: req.body.accountTo,
             explanation: req.body.explanation,
             statusDetail: statusDetail,
-            senderName: await User.findOne({id: req.userId}).name // sõna name lõppus kontrollida, midagi ei jõudnud vist kirjutada
+            senderName: (await User.findOne({id: req.userId})).name // sõna name lõppus kontrollida, midagi ei jõudnud vist kirjutada
         })
 
         // 201 Created

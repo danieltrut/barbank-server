@@ -76,15 +76,12 @@ exports.refreshListOfBanksFromCentralBank = async function refreshListOfBanksFro
 
 }
 
-//   !!!!!!!!!!!!!!!!!!!!!!!!!
-// Siin  all pool ka hästi kontrollida, midagi ei jõudnud kirjutada!!
-
 
 exports.processTransactions = async function (){
     console.log('Running processTransactions')
 
     // get pending transactions
-    const pendingTransactions = await Transaction.find({status: Pending})
+    const pendingTransactions = await Transaction.find({status: 'Pending'})
 
 
     // Loop threouhg all pending
@@ -103,6 +100,7 @@ exports.processTransactions = async function (){
         }
     })
     // Check if th etranaction has expired
+
 
 
     //Recursively call itself again
