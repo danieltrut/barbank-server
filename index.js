@@ -17,8 +17,10 @@ app.use(express.json())
 // Endpoints
 app.use('/users', require('./routes/users'))
 app.use('/sessions', require('./routes/sessions'))
+app.use('/transactions', require('./routes/transactions'))
 
-mongoose.connect(process.env.MONGODB_URI, {}, function () {
+mongoose.connect(process.env.MONGODB_URI, {}, function (err) {
+    if(err)throw err
     console.log('Connected to mongoDB')
 })
 

@@ -158,6 +158,94 @@ paths:
           Bearer: []
       summary: Get user's details
       description: Returns instance of `user`
+  /transactions:
+    summary: Path used to manage the list of transactions.
+    description: >-
+      The REST endpoint/path used to list and create zero or more `transaction` entities.  This path
+      contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/transaction'
+          description: Successful response - returns an array of `transaction` entities.
+      operationId: gettransactions
+      summary: List All transactions
+      description: Gets a list of all `transaction` entities.
+    post:
+      requestBody:
+        description: A new `transaction` to be created.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/transaction'
+            examples:
+              Invalid amount:
+                value:
+                  error: invalid amount
+              Missing parameter:
+                value:
+                  error: 'Transaction validation failed: .* : Path ''.*'' is required'
+              Parameter is shorter than the minimum allowed length:
+                value:
+                  error: Path '.*' ('.*') is shorter that the minimum allowed length
+        required: true
+      responses:
+        '201':
+          description: Successful response.
+      operationId: createtransaction
+      summary: Create a transaction
+      description: Creates a new instance of a `transaction`.
+  '/transactions/{transactionId}':
+    summary: Path used to manage a single transaction.
+    description: >-
+      The REST endpoint/path used to get, update, and delete single instances of an `transaction`.  This
+      path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete
+      tasks, respectively.
+    get:
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/transaction'
+          description: Successful response - returns a single `transaction`.
+      operationId: gettransaction
+      summary: Get a transaction
+      description: Gets the details of a single instance of a `transaction`.
+    put:
+      requestBody:
+        description: Updated `transaction` information.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/transaction'
+        required: true
+      responses:
+        '202':
+          description: Successful response.
+      operationId: updatetransaction
+      summary: Update a transaction
+      description: Updates an existing `transaction`.
+    delete:
+      responses:
+        '204':
+          description: Successful response.
+      operationId: deletetransaction
+      summary: Delete a transaction
+      description: Deletes an existing `transaction`.
+    parameters:
+      -
+        name: transactionId
+        description: A unique identifier for a `transaction`.
+        schema:
+          type: string
+        in: path
+        required: true
 components:
   schemas:
     user:
@@ -187,6 +275,25 @@ components:
     session:
       description: ''
       type: object
+    transaction:
+      title: Root Type for transaction
+      description: ''
+      type: object
+      properties:
+        accountFrom:
+          type: string
+        accountTo:
+          type: string
+        amount:
+          format: int32
+          type: integer
+        explanation:
+          type: string
+      example:
+        accountFrom: RU000000001
+        accountTo: BY000000001
+        amount: 1500000000
+        explanation: Don’t go spend it all at once
   securitySchemes:
     Bearer:
       scheme: bearer
