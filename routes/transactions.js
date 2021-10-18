@@ -19,7 +19,6 @@ router.post('/', verifyToken, async function (req, res) {
             return res.status(404).send({error: "account From not found"})
         }
 
-
         // 402 Insufficient funds
         if (req.body.amount > accountFrom.balance) {
             return res.status(402).send({error: "Insufficient funds "})

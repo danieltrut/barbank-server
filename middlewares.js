@@ -3,8 +3,9 @@ const Bank = require("./models/Bank")
 const Session = require("./models/Session")
 const Transaction = require("./models/Transaction")
 const fetch = require("node-fetch")
-
-
+const jose = require('node-jose')
+const fs = require('fs')
+const crypto = require('crypto')
 
 exports.verifyToken = async (req, res, next) => {
 
@@ -77,30 +78,124 @@ exports.refreshListOfBanksFromCentralBank = async function refreshListOfBanksFro
 }
 
 
+function isExpired(transaction) {
+    // check of the trasaction has expired
+    const nowPlus3Day = new Date (
+        transaction.createdAt.getFullYear(),
+        transaction.createdAt.getMonth(),
+        transaction.createdAt.getDay() +3
+    )
+
+    if (nowPlus3Day > new Date) {
+
+        // Set transaction status as failed
+        transaction.status = 'Failed'
+
+        // Set statusDetail as expired
+        transaction.statusDetail = 'Expired'
+
+        // Save changes
+        transaction.save()
+        // Take the next transaction
+        return true
+    }
+    return false
+}
+
+function setStatus(transaction, status, statusDetail) {
+    // Set transaction status to in progress
+    transaction.status = status
+    transaction.statusDetail = statusDetail
+    transaction.save()
+}
+
+async function createJwtString(input) {
+    // Create JWS
+    let privateKey
+    try {
+        privateKey = fs.readFileSync('private.key', 'utf8')
+        console.log('privateKey: ' + privateKey)
+        const keystore = jose.JWK.createKeyStore();
+        const key = await keystore.add(privateKey, 'pem')
+        return await jose.JWS.createSign({format: 'compact'}, key).update(JSON.stringify(input), "utf8").final()
+    } catch (err) {
+        console.error('Error reading private key' + err)
+        throw Error('Error reading private key' + err)
+    }
+
+}
+
+async function sendRequestToDestinationBank(jwt) {
+    const response = await fetch('http://localhost:4000/b2b', {
+        method: 'post',
+        body: JSON.stringify({jwt}),
+        headers: {'Content-Type': 'application/json'}
+    });
+
+    const data = await response.json();
+    console.log(data)
+    return data
+}
+
 exports.processTransactions = async function (){
     console.log('Running processTransactions')
 
     // get pending transactions
     const pendingTransactions = await Transaction.find({status: 'Pending'})
 
+    let accountToBank, jwt;
 
-    // Loop threouhg all pending
+    // Loop throught all pending
 
-    pendingTransactions.forEach(transaction => {
+    pendingTransactions.forEach(async transaction => {
 
-        // check of the trasaction has expired
-        const nowPlus3Day = new Date (
-            transaction.createdAt.getFullYear(),
-            transaction.createdAt.getMonth(),
-            transaction.createdAt.getDay() +3
-        )
+        // Assert that the transaction has not expired
+        if (isExpired(transaction)) return;
 
-        if(nowPlus3Day > new Date){
+        // Set transaction status to in progress
+        setStatus(transaction, 'In progress');
+
+        // Get the bank from accountTo
+        let bankPrefix = transaction.accountTo.substring(0, 3)
+        accountToBank = Bank.findOne({bankPrefix})
+
+        // If we have don't the bank in local database
+        if (!accountToBank) {
+            let result = exports.refreshListOfBanksFromCentralBank()
+            if (typeof result.error !== 'undefined') {
+                setStatus(transaction, 'Pending', 'Central bank refresh failed: ' + result.error)
+
+                // Move to the new transaction
+                return
+            }
+            accountToBank = Bank.findOne({bankPrefix})
+            if (!accountToBank) {
+                return setStatus(transaction, 'Failed', 'Bank' + bankPrefix + ' does not exist')
+
+            }
+        }
+
+        try {
+            jwt = await createJwtString({
+                accountFrom: transaction.accountFrom,
+                accountTo: transaction.accountTo,
+                amount: transaction.amount,
+                currency: transaction.currency,
+                explanation: transaction.explanation,
+                senderName: transaction.senderName,
+            });
+
+             const response = await sendRequestToDestinationBank(jwt);
+
+             transaction.receiverName = response.receiverName
+            return setStatus(transaction, 'Completed', '')
+
+        }    catch (e) {
+            console.log(e.message)
 
         }
-    })
-    // Check if th etranaction has expired
 
+    }, Error)
 
 
     //Recursively call itself again
