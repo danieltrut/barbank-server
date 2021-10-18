@@ -16,10 +16,6 @@ app.use(express.json())
 
 
 // Endpoints
-app.use('/b2b', function(req, res) {
-    console.log(req.body)
-    res.send({receiverName: "Jaan Tamm"})
-})
 app.use('/users', require('./routes/users'))
 app.use('/sessions', require('./routes/sessions'))
 app.use('/transactions', require('./routes/transactions'))

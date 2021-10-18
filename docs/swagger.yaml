@@ -59,8 +59,8 @@ paths:
             examples:
               POST /sessions request body:
                 value:
-                  username: miki
-                  password: plutoonium
+                  username: TEST
+                  password: TEST3434
         required: true
       tags:
         - sessions
@@ -71,7 +71,7 @@ paths:
               examples:
                 POST /sessions 201 response:
                   value:
-                    token: 23m52jmnb52b524t4
+                    token: 615f573c763ab0e1cbd6080c
           description: Successful response.
         '401':
           content:
@@ -98,12 +98,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/error'
               examples:
-                Invalid Authorization header:
-                  value:
-                    error: Invalid authorization header
                 Invalid Authorization header format:
                   value:
-                    error: Invalid authorization header format
+                    error: Invalid Authorization header format
                 Missing Authorization header:
                   value:
                     error: Missing Authorization header
@@ -114,6 +111,8 @@ paths:
       security:
         -
           Bearer: []
+      summary: Logs the user out
+      description: Destroy the session
   /users/current:
     get:
       tags:
@@ -130,29 +129,30 @@ paths:
                     accounts:
                       -
                         balance: 10000
-                        createdAt: '2021-09-21T13:54:50.018Z'
+                        createdAt: '2021-09-28T15:32:43.241Z'
                         currency: USD
-                        id: 6149e478a9e4f02ee84c2aff
+                        id: 61533638c51acde23b70284f
                         name: Main
-                        number: abc71251b13eaa35fec4158f38d3801f372
-                        userId: 6149e478a9e4f02ee84c2afd
-                    id: 6149e478a9e4f02ee84c2afd
-                    name: tester
-                    username: test123
-          description: Returns user's details
+                        number: abcc06c2f7032eece45cfd0331afab3833d
+                        userId: 61533638c51acde23b70284d
+                    id: 61533638c51acde23b70284d
+                    name: TEST
+                    username: TEST
+          description: |
+            Returns user's details
         '401':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/error'
               examples:
-                Missing authorization header:
+                Invalid Authorization header format:
                   value:
-                    error: Missing authorization header
-                Invalid authorization header:
+                    error: Invalid Authorization header
+                Missing Authorization header:
                   value:
-                    error: Invalid authorization header
-          description: Unauthorized
+                    error: Missing Authorization header
+          description: Problem with authorization header
       security:
         -
           Bearer: []
@@ -163,19 +163,6 @@ paths:
     description: >-
       The REST endpoint/path used to list and create zero or more `transaction` entities.  This path
       contains a `GET` and `POST` operation to perform the list and create tasks, respectively.
-    get:
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/transaction'
-          description: Successful response - returns an array of `transaction` entities.
-      operationId: gettransactions
-      summary: List All transactions
-      description: Gets a list of all `transaction` entities.
     post:
       requestBody:
         description: A new `transaction` to be created.
@@ -183,69 +170,143 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/transaction'
-            examples:
-              Invalid amount:
-                value:
-                  error: invalid amount
-              Missing parameter:
-                value:
-                  error: 'Transaction validation failed: .* : Path ''.*'' is required'
-              Parameter is shorter than the minimum allowed length:
-                value:
-                  error: Path '.*' ('.*') is shorter that the minimum allowed length
         required: true
+      tags:
+        - transactions
       responses:
         '201':
           description: Successful response.
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Invalid amount:
+                  value:
+                    error: Invalid amount
+                Missind parameter:
+                  value:
+                    error: 'Transaction validation failed: .* : Path `.*` is required.'
+                'Path `accounFrom`  (`a`) is shorter than the minimum allowed length. ':
+                  value:
+                    error: 'Path `.*`  (`.*`) is shorter than the minimum allowed length. '
+                'Transaction validation failed: explanation: Path `explanation` is required.':
+                  value:
+                    error: >-
+                      Transaction validation failed: explanation: Path `explanation` is
+                      required.
+          description: Bad request
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Invalid Authorization header format:
+                  value:
+                    error: Invalid Authorization header
+                Missing Authorization header:
+                  value:
+                    error: Missing Authorization header
+          description: Problem with authorization header
+        '402':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Insufficient funds:
+                  value:
+                    error: Insufficient funds
+          description: Insufficient funds
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                accountFrom not found:
+                  value:
+                    error: accountFrom not found
+          description: Not found
+      security:
+        -
+          Bearer: []
       operationId: createtransaction
-      summary: Create a transaction
-      description: Creates a new instance of a `transaction`.
-  '/transactions/{transactionId}':
-    summary: Path used to manage a single transaction.
-    description: >-
-      The REST endpoint/path used to get, update, and delete single instances of an `transaction`.  This
-      path contains `GET`, `PUT`, and `DELETE` operations used to perform the get, update, and delete
-      tasks, respectively.
-    get:
+      description: Creates a new instance of a transaction
+  /transactions/b2b:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/jwt'
+        required: true
+      tags:
+        - transactions
       responses:
         '200':
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/transaction'
-          description: Successful response - returns a single `transaction`.
-      operationId: gettransaction
-      summary: Get a transaction
-      description: Gets the details of a single instance of a `transaction`.
-    put:
-      requestBody:
-        description: Updated `transaction` information.
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/transaction'
-        required: true
+              examples:
+                POST /transactions/b2b response:
+                  value:
+                    receiverName: Julia Taro
+          description: Transaction accepted
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Invalid signature:
+                  value:
+                    error: Invalid signature
+          description: Invalid signature
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                Bank \w+ was not found in Central Bank:
+                  value:
+                    error: Bank \w+ was not found in Central Bank
+          description: Bank was not found in Central Bank
+        '502':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+              examples:
+                There was an error communication with Central Bank:
+                  value:
+                    error: There was an error communication with Central Bank.*
+          description: There was an error communication with Central Bank
+      summary: Accepts transactions from other banks
+  /transactions/jwks:
+    description: ''
+    get:
+      tags:
+        - transactions
       responses:
-        '202':
-          description: Successful response.
-      operationId: updatetransaction
-      summary: Update a transaction
-      description: Updates an existing `transaction`.
-    delete:
-      responses:
-        '204':
-          description: Successful response.
-      operationId: deletetransaction
-      summary: Delete a transaction
-      description: Deletes an existing `transaction`.
-    parameters:
-      -
-        name: transactionId
-        description: A unique identifier for a `transaction`.
-        schema:
-          type: string
-        in: path
-        required: true
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/jwks'
+          description: >-
+            Set of keys in jwks format containing the public key used to verify JSON Web Token
+            sent by the origin bank when initiating a transaction with another bank and signed
+            with the corresponding private key
+      summary: Returns JWKS for validating jwt-signatures
+      description: >-
+        Returns set of keys containing the public key used to verify JSON Web Token sent by the origin
+        bank when initiating a transaction with another bank and signed with the corresponding private
+        key
 components:
   schemas:
     user:
@@ -260,9 +321,9 @@ components:
         name:
           type: string
       example:
-        username: henno
-        password: secret
-        name: Henno Täht
+        username: TEST
+        password: TEST3434
+        name: TEST
     error:
       title: Root Type for error
       description: ''
@@ -290,10 +351,46 @@ components:
         explanation:
           type: string
       example:
-        accountFrom: RU000000001
-        accountTo: BY000000001
+        accountFrom: babc06c2f7032eece45cfd0331afab3833d
+        accountTo: 093BY000000001
         amount: 1500000000
         explanation: Don’t go spend it all at once
+    jwt:
+      title: Root Type for jwt
+      description: ''
+      type: object
+      properties:
+        jwt:
+          type: string
+      example:
+        jwt: >-
+          eyJhbGciOiJSUzI1NiIsImtpZCI6IlFWaGxic05aWlk4M1lSRkhTLU9XSnFpcUVNYmpvYXFoWklpUFZSWmdXLWsifQ.eyJhY2NvdW50RnJvbSI6ImJhYmMwNmMyZjcwMzJlZWNlNDVjZmQwMzMxYWZhYjM4MzNkIiwiYWNjb3VudFRvIjoiYmFiMDcwZGRhYzhhYTk0NjZjNTVkOWI0NTEzZTlhNzg3NzQiLCJhbW91bnQiOjEwLCJjdXJyZW5jeSI6IlVTRCIsImV4cGxhbmF0aW9uIjoieHh4Iiwic2VuZGVyTmFtZSI6IlRFU1QifQ.B0UKNg9T9XPO-e7DiuyvT089AwqxhI3lQ8IsmLDtLHxzqHcbr3jAPq3eifpBfEmFU85s-ksTfZ8Pf-BmmYftRcmfcFjGL8aLUrcxf58fuNFySqjFOlIogVysFyeblqagOcJ7QJmT37rBYRTZ7pcuvQxlisdfDE8tS3aOXFD-xi8
+    jwks:
+      title: Root Type for jwks
+      description: ''
+      type: object
+      properties:
+        keys:
+          type: array
+          items:
+            type: object
+            properties:
+              kty:
+                type: string
+              kid:
+                type: string
+              'n':
+                type: string
+              e:
+                type: string
+      example:
+        keys:
+          -
+            kty: RSA
+            kid: QVhlbsNZZY83YRFHS-OWJqiqEMbjoaqhZIiPVRZgW-k
+            'n': >-
+              RlWISHXpjWXdYGLSB99okpIW8eEL9ochaEMUyZ8bHW46CLXX-kkI8l6ue7KtxuyrWpuOpuzrHtZWp29H6fgyOq1mKZ0heK-XkV1rJoKHd-6wc0Jdpg2SPwC6BWRGcE2HnvHxT0s8pfa_GwTd7Tu27gIR2S7TVx7N86E5jxll7t0
+            e: AQAB
   securitySchemes:
     Bearer:
       scheme: bearer
@@ -304,4 +401,7 @@ tags:
     description: ''
   -
     name: users
+    description: ''
+  -
+    name: transactions
     description: ''
